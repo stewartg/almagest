@@ -25,14 +25,15 @@ class TemplateGenerator:
     6. Delete the temporary index and register the new template under the provided alias.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, verify_certs: bool = False) -> None:
         """Initialize the TemplateGenerator.
 
         Sets up the OpenSearch client, logger, and an empty dictionary for
         storing runtime arguments.
+        :param verify_certs: True to verify certs.
         """
         self.logger = SimpleLogger(self)
-        self.client = ClientHelper.get_client()
+        self.client = ClientHelper.get_client(verify_certs=verify_certs)
         self.args: dict[str, Any] = {}
 
     def _verify_args(self) -> None:
