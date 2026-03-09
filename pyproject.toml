@@ -1,6 +1,6 @@
 [project]
 name = "almagest"
-version = "2.2.3"
+version = "2.2.4"
 description = "Module for interfacing with the SDA Tap Lab opensearch instance"
 readme = "README.md"
 requires-python = ">=3.10"
