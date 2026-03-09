@@ -38,9 +38,19 @@ jobs:
           cz bump --yes --annotated-tag || echo "NO_BUMP_NEEDED=true" >> $GITHUB_ENV
 
       - name: Push changes and tags
-        # Only push if a bump actually occurred
         if: env.NO_BUMP_NEEDED != 'true'
         run: |
-          echo "Version bumped. Pushing commit and tags..."
-          # Atomic push: sends the version commit AND the new tag together
-          git push origin main --tags
+          echo "Version bumped. Pushing commit and tags separately to ensure trigger..."
+          
+          # push the version bump commit first
+          git push origin main
+          
+          # wait to ensure GitHub processes the branch push event
+          sleep 2
+          
+          # 3. Push the tags separately. 
+          # This generates a distinct 'push' event specifically for tags, 
+          # which reliably triggers the python-publish workflow.
+          git push origin --tags
+          
+          echo "Push complete."
