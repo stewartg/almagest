@@ -1,24 +1,27 @@
 name: Auto-Bump Version and Tag
+
 on:
   push:
     branches:
-      - main # Or your default branch
+      - main # Triggers after a PR is merged to main
 
 jobs:
   bump-version:
     runs-on: ubuntu-latest
+    # Ensure we have write permissions to push the tag back
     permissions:
-      contents: write # Needed to push tags and commits
+      contents: write 
+      pull-requests: read # Good practice if you ever want to comment on the PR
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history for tags
+          fetch-depth: 0 # Essential: gets all history to calculate bump
           token: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      
+
       - name: Install Commitizen
         run: pip install commitizen
 
@@ -26,11 +29,18 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-      
+
       - name: Bump version and create tag
-        run: cz bump --yes --annotated-tag
-      
-      - name: Push changes and tags
+        id: bump
         run: |
-          echo "Pushing updated version file and new tag..."
+          # Run bump. If no bump is needed, cz exits with 21. 
+          # We catch this to allow the workflow to finish gracefully without erroring the whole pipeline.
+          cz bump --yes --annotated-tag || echo "NO_BUMP_NEEDED=true" >> $GITHUB_ENV
+
+      - name: Push changes and tags
+        # Only push if a bump actually occurred
+        if: env.NO_BUMP_NEEDED != 'true'
+        run: |
+          echo "Version bumped. Pushing commit and tags..."
+          # Atomic push: sends the version commit AND the new tag together
           git push origin main --tags
