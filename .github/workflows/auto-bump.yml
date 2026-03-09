@@ -32,5 +32,5 @@ jobs:
       
       - name: Push changes and tags
         run: |
-          git push origin main
-          git push origin --tags
+          echo "Pushing updated version file and new tag..."
+          git push origin main --tags
