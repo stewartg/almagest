@@ -44,8 +44,8 @@ class BaseMixin:
         *,
         size: int = 10000,
         sort: list[dict[str, str]] | None = None,
-        # search_after: Optional[list[Any]] = None,
         pit_id: str | None = None,
+        verify_certs: bool = False,
     ) -> None:
         """Initialize a BaseMixin instance.
 
@@ -61,7 +61,7 @@ class BaseMixin:
             This improves code readability and prevents errors if the parameter order changes
             in future updates.
         """
-        self._client = ClientHelper().get_client()
+        self._client = ClientHelper().get_client(verify_certs=verify_certs)
         self.index = index
         self.size = size
         self.sort = sort or [{"_doc": "asc"}]

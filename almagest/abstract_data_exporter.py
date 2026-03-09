@@ -11,10 +11,10 @@ from almagest.util.logging.simple_logger import SimpleLogger
 class AbstractDataExporter(metaclass=ABCMeta):
     """Prepare sdata to be written to the indicated opensearch cluster."""
 
-    def __init__(self) -> None:
+    def __init__(self, verify_certs: bool = False) -> None:
         self.class_name = self.__class__.__name__
         self.logger = SimpleLogger(self)
-        self.client = ClientHelper.get_client()
+        self.client = ClientHelper.get_client(verify_certs=verify_certs)
         self._batch_size = 1000
         self._throttle_time = 0
         self._args = {}
