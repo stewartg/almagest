@@ -16,7 +16,11 @@ class Singleton(type):
 
 class ClientHelper(metaclass=Singleton):
     def __init__(self):
-        """Sets up the singleton opensearch client."""
+        """Sets up the singleton opensearch client.
+
+        The cert uses os.getenv which in effect makes using them optional
+        since os.getenv inserts empty string if not found.
+        """
         self.client = None
         self.user = ""
         self.pw = ""
