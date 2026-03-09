@@ -3,20 +3,19 @@ name: Auto-Bump Version and Tag
 on:
   push:
     branches:
-      - main # Triggers after a PR is merged to main
+      - main
 
 jobs:
   bump-version:
     runs-on: ubuntu-latest
-    # Ensure we have write permissions to push the tag back
     permissions:
       contents: write 
-      pull-requests: read # Good practice if you ever want to comment on the PR
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Essential: gets all history to calculate bump
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          # CRITICAL: Use the PAT instead of the default GITHUB_TOKEN
+          token: ${{ secrets.PAT_TOKEN }}
 
       - uses: actions/setup-python@v5
         with:
@@ -33,24 +32,19 @@ jobs:
       - name: Bump version and create tag
         id: bump
         run: |
-          # Run bump. If no bump is needed, cz exits with 21. 
-          # We catch this to allow the workflow to finish gracefully without erroring the whole pipeline.
           cz bump --yes --annotated-tag || echo "NO_BUMP_NEEDED=true" >> $GITHUB_ENV
 
       - name: Push changes and tags
         if: env.NO_BUMP_NEEDED != 'true'
         run: |
-          echo "Version bumped. Pushing commit and tags separately to ensure trigger..."
+          echo "Pushing with PAT to trigger downstream workflows..."
           
-          # push the version bump commit first
+          # Push commit
           git push origin main
           
-          # wait to ensure GitHub processes the branch push event
           sleep 2
           
-          # 3. Push the tags separately. 
-          # This generates a distinct 'push' event specifically for tags, 
-          # which reliably triggers the python-publish workflow.
+          # Push tags (This will now trigger python-publish.yml because it's a "user" push)
           git push origin --tags
           
           echo "Push complete."
