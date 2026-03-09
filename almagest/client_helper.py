@@ -25,12 +25,14 @@ class ClientHelper(metaclass=Singleton):
             self._host = os.environ["OPENSEARCH_HOST"]
             self.user = os.environ["OPENSEARCH_USER"]
             self.pw = os.environ["OPENSEARCH_PW"]
+            self.client_cert = os.getenv("OPENSEARCH_CERT_PATH")
+            self.client_key = os.getenv("OPENSEARCH_KEY_PATH")
         except KeyError as err:
             os_env_vars = "OPENSEARCH_HOST, OPENSEARCH_USER, OPENSEARCH_PW"
             raise ValueError(f"The following environment variables must be set: {os_env_vars}") from err
 
     @classmethod
-    def get_client(cls):
+    def get_client(cls, verify_certs: bool = False):
         """Creates the opensearch client using environment variables.
 
         :raises ValueError: if the client can't connect
@@ -43,8 +45,10 @@ class ClientHelper(metaclass=Singleton):
             http_auth=auth,
             scheme="https",
             port=443,
+            client_cert=obj.client_cert,
+            client_key=obj.client_key,
             use_ssl=True,
-            verify_certs=False,
+            verify_certs=verify_certs,
             ssl_show_warn=True,
         )
         if not client.ping():

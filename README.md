@@ -34,7 +34,7 @@
 
 ## Development
 
-To be developed/deployed against the latest stable release of Python 3.9 or later
+To be developed/deployed against the latest stable release of Python 3.10 or later
 
 
 1. Clone this repo, you should be in the /your/cloned/directory/almagest directory. If not, cd to that directory.
