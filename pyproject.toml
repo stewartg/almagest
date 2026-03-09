@@ -54,7 +54,7 @@ version_scheme = "pep440"
 version_provider = "pep621"
 update_changelog_on_bump = false
 annotated_tag = true
-bump_message = "release $current_version → $new_version"
+bump_message = "release $current_version → $new_version [skip-ci]"
   
 [build-system]
 requires = ["hatchling"]
