@@ -1,0 +1,207 @@
+aliases:
+  gcat_catalog: {}
+index_patterns:
+- gcat_catalog*
+mappings:
+  properties:
+    af:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    altnames:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    apogee:
+      type: double
+    bus:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    data_provider:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    data_provider_url:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    ddate:
+      ignore_malformed: true
+      type: date
+    descent_date:
+      ignore_malformed: true
+      type: date
+    dest:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    dflag:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    diameter:
+      type: float
+    dryflag:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    drymass:
+      type: float
+    if:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    inc:
+      type: float
+    ingestTimestamp:
+      type: date
+    jcat:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    last_update:
+      ignore_malformed: true
+      type: date
+    launch_date:
+      ignore_malformed: true
+      type: date
+    ldate:
+      ignore_malformed: true
+      type: date
+    length:
+      type: float
+    lflag:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    manufacturer:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    mass:
+      type: float
+    massflag:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    motor:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    name:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    odate:
+      ignore_malformed: true
+      type: date
+    oporbit:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    oqual:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    orbit_epoch:
+      ignore_malformed: true
+      type: date
+    owner:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    parent:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    perigee:
+      type: double
+    pf:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    piece:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    plname:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    primary:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    satcat:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    sdate:
+      ignore_malformed: true
+      type: date
+    separation_date:
+      ignore_malformed: true
+      type: date
+    shape:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    span:
+      type: float
+    spanflag:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    state:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    status:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    totflag:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+    totmass:
+      type: float
+    type:
+      fields:
+        keyword:
+          type: keyword
+      type: text
+settings:
+  number_of_replicas: '2'
+  number_of_shards: '1'
+template: gcat_catalog

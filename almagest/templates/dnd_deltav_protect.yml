@@ -1,0 +1,103 @@
+index_patterns:
+- dnd_deltav_protect_*
+template:
+  mappings:
+    properties:
+      bogey_approx_rms:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      bogey_dnd_name:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      bogey_idElset:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      bogey_line1:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      bogey_line2:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      bogey_mv_mean:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      bogey_source:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      cartesian_dist:
+        type: float
+      classificationMarking:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      dvplane:
+        type: float
+      dvsma:
+        type: float
+      dvtotal:
+        type: float
+      msgType:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      protect_dnd_name:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      protect_idElset:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      protect_line1:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      protect_line2:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      protect_source:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      report_run_time:
+        type: date
+  settings:
+    index:
+      number_of_replicas: '2'
+      number_of_shards: '1'

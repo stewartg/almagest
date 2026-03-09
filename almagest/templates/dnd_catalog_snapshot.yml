@@ -1,0 +1,187 @@
+index_patterns:
+- dnd_catalog_snapshot_*
+template:
+  mappings:
+    properties:
+      FK4_FK5_Flag:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      agom:
+        type: float
+      algorithm:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      apogee_km:
+        type: float
+      approx_obcount:
+        type: float
+      approx_rms:
+        type: float
+      argOfPerigee:
+        type: float
+      bTerm:
+        type: float
+      ballisticCoeff:
+        type: float
+      bstar:
+        type: float
+      classification:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      classificationMarking:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      createdAt:
+        type: date
+      dataMode:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      descriptor:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      dnd_name:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      eccentricity:
+        type: float
+      elementSetNumber:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      ephemType:
+        type: long
+      ephemerisType:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      epoch:
+        type: date
+      epoch_iso:
+        type: date
+      f_date:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      fake_satno:
+        type: long
+      idElset:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      inclination:
+        type: float
+      internalDesignator:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      last_seen:
+        type: date
+      line1:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      line2:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      meanAnomaly:
+        type: float
+      meanMotion:
+        type: float
+      meanMotionDDot:
+        type: float
+      origObjectId:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      origin:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      perigee_km:
+        type: float
+      period_min:
+        type: float
+      raan:
+        type: float
+      satNo:
+        type: long
+      scc:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      semi_major_axis_km:
+        type: float
+      source:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      sourcedData:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      tags:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      uct:
+        type: boolean
+      vismag_mean:
+        type: float
+      vismag_std:
+        type: float
+      vismagunc_mean:
+        type: float
+      vismagunc_std:
+        type: float
+  settings:
+    index:
+      number_of_replicas: '2'
+      number_of_shards: '1'

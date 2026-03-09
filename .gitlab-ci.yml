@@ -1,0 +1,157 @@
+variables:
+  PYTHON_VERSION: "3.11"
+  PYTHON_IMAGE: "harbor.corp.icr-team.com/dockerhub/python:${PYTHON_VERSION}-bullseye"
+
+  # Project-wide
+  PACKAGE_NAME: "almagest"
+  PACKAGE_VERSION: "${CI_COMMIT_TAG:-latest}"
+
+  # SSL certificate used by the upload step (kept from the original config)
+  SSL_CERT_FILE: "/etc/gitlab-runner/certs/ca.crt"
+
+before_script:
+  - source scripts/setup_python_environment.sh -d -y -v ${PYTHON_VERSION}
+  - export PYTHONPATH=$PYTHONPATH:${CI_PROJECT_DIR}
+
+stages:
+  - ci-test
+  - auto-bump
+  - build
+  - publish
+
+.ci-test-rules:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+
+.auto-bump-rules:
+  rules:
+    # Run only on a push to the default branch that results from a merge
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_MESSAGE =~ /Merge/'
+      when: on_success
+    - when: never
+
+.tag-pipeline-rules:
+  rules:
+    # Condition 1: Explicitly check if the variable exists
+    - if: '$CI_COMMIT_TAG != "" && $CI_COMMIT_TAG != null'
+      when: on_success
+    
+    # Condition 2: Fallback - Check if the pipeline ref type is a tag
+    # This catches cases where the variable might be empty but the trigger was a tag
+    - if: '$CI_COMMIT_REF_TYPE == "tag"'
+      when: on_success
+      
+    - when: never
+
+.ci-test-base:
+  stage: ci-test
+  image: ${PYTHON_IMAGE}
+  extends: .ci-test-rules
+
+ruff:
+  extends: .ci-test-base
+  script:
+    - ruff check .
+
+pytest:
+  extends: .ci-test-base
+  script:
+    - pytest --cov=${CI_PROJECT_DIR} --cov-report term --cov-report=xml --cov-report=html --junitxml=junit.xml tests/unit
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  artifacts:
+    when: always
+    paths:
+      - htmlcov/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+      junit: junit.xml
+    expire_in: 1 week
+
+auto-bump:
+  stage: auto-bump
+  image: "${PYTHON_IMAGE}"
+  extends: .auto-bump-rules
+  script:
+    - echo "=== Starting auto-bump ==="
+    - apt-get update && apt-get install -y --no-install-recommends git curl ca-certificates && rm -rf /var/lib/apt/lists/*
+    - export SSL_CERT_FILE=${SSL_CERT_FILE}
+    - git config --global user.email "${CI_EMAIL:-ci-bot@icr-team.com}"
+    - git config --global user.name  "${CI_USERNAME:-ci-bot}"
+    - git config --global http.sslCAinfo ${SSL_CERT_FILE}
+    - python -m venv /tmp/venv
+    - export PATH="/tmp/venv/bin:$PATH"
+    - pip install --no-cache-dir commitizen
+    - git remote rm origin || true
+    - git remote add origin "https://oauth2:${PROJECT_ACCESS_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+    - git fetch --tags
+    - git checkout -B "$CI_COMMIT_REF_NAME" "$CI_COMMIT_SHA"
+    # ---- DEBUG -------------------------------------------------
+    - echo "Current commit:" "$(git rev-parse HEAD)"
+    - echo "Files in repo root:"
+    - ls -la .cz* 2>/dev/null || echo "No .cz* file found"
+    - if [ -f .cz.yml ]; then echo "---- .cz.yml content ----"; cat .cz.yml; fi
+    - cz version
+    # ----------------------------------------------------------
+    - cz bump --yes --annotated-tag
+    - LATEST_TAG=$(git describe --abbrev=0)
+    - echo "LATEST_TAG=$LATEST_TAG" >> build.env
+    # - git push --follow-tags origin "$CI_COMMIT_BRANCH:$CI_COMMIT_BRANCH"
+    - git push origin "$CI_COMMIT_BRANCH:$CI_COMMIT_BRANCH"
+    - git push origin "$LATEST_TAG"  # Push only the new tag
+    - echo "=== Auto-bump completed successfully ==="
+  artifacts:
+    reports:
+      dotenv: build.env
+    paths:
+      - build.env
+
+build: # separate pipeline triggered by the autobump tag, no no needs tag 
+  stage: build
+  image: ${PYTHON_IMAGE}
+  extends: .tag-pipeline-rules
+  script:
+    - |
+      echo "Building package for tag: ${CI_COMMIT_TAG}"
+      if [ -z "$CI_COMMIT_TAG" ]; then 
+        echo "Error: CI_COMMIT_TAG is empty. This job should only run on a tag pipeline."
+        exit 1
+      fi
+    - python -m venv venv
+    - . venv/bin/activate
+    - pip install --upgrade pip build
+    - python -m build --sdist --wheel
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+
+publish:
+  stage: publish
+  image: ${PYTHON_IMAGE}
+  needs:
+    - job: build
+      artifacts: true
+  extends: .tag-pipeline-rules
+  script:
+    - |
+      if [ -z "$CI_COMMIT_TAG" ]; then
+        echo "Error: CI_COMMIT_TAG is empty."
+        exit 1
+      fi
+      echo "Publishing ${PACKAGE_NAME} ${CI_COMMIT_TAG} to ${ICR_PYINDEX}"
+      
+    # avoids shell backslash issues using long/multi line syntax
+    - >
+      twine upload
+      -u "${ICR_NEXUS_USER}"
+      -p "${ICR_NEXUS_PASSWORD}"
+      --cert "${SSL_CERT_FILE}"
+      --repository-url "${ICR_PYINDEX}/"
+      dist/*.whl dist/*.tar.gz
+
+  artifacts:
+    when: always
+    expire_in: 1 week

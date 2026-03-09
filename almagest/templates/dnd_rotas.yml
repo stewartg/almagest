@@ -1,0 +1,423 @@
+index_patterns:
+- dnd_rotas_*
+template:
+  mappings:
+    properties:
+      ob:
+        properties:
+          B3:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          B3_vismag:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          DS50:
+            type: float
+          asObId:
+            type: long
+          as_id:
+            type: long
+          azimuth:
+            type: float
+          classificationMarking:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          createdAt:
+            type: date
+          createdBy:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          dataMode:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          declination:
+            type: float
+          elevation:
+            type: float
+          expDuration:
+            type: float
+          fakeSatNo:
+            type: long
+          geoalt:
+            type: float
+          geolat:
+            type: float
+          geolon:
+            type: float
+          georange:
+            type: float
+          id:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          idSensor:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          losUnc:
+            type: float
+          mag:
+            type: float
+          magUnc:
+            type: float
+          netObjSig:
+            type: float
+          netObjSigUnc:
+            type: float
+          obTime:
+            type: date
+          origNetwork:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          origObjectId:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          origSensorId:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          ra:
+            type: float
+          range:
+            type: float
+          rawFileURI:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          sen_itrsx:
+            type: float
+          sen_itrsy:
+            type: float
+          sen_itrsz:
+            type: float
+          senalt:
+            type: float
+          senlat:
+            type: float
+          senlon:
+            type: float
+          senx:
+            type: float
+          seny:
+            type: float
+          senz:
+            type: float
+          shutterDelay:
+            type: float
+          solarDecAngle:
+            type: float
+          solarEqPhaseAngle:
+            type: float
+          solarPhaseAngle:
+            type: float
+          source:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          taskId:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          type:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          uct:
+            type: boolean
+          zeroptd:
+            type: float
+      ob_azimuth:
+        type: float
+      ob_b3:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      ob_b3_vismag:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      ob_classificationMarking:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      ob_declination:
+        type: float
+      ob_ds50:
+        type: float
+      ob_elevation:
+        type: float
+      ob_id:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      ob_idSensor:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      ob_mag:
+        type: float
+      ob_magUnc:
+        type: float
+      ob_obTime:
+        type: date
+      ob_ra:
+        type: float
+      ob_sen_itrsx:
+        type: float
+      ob_sen_itrsy:
+        type: float
+      ob_sen_itrsz:
+        type: float
+      ob_senalt:
+        type: float
+      ob_senlat:
+        type: float
+      ob_senlon:
+        type: float
+      ob_solarEqPhaseAngle:
+        type: float
+      ob_solarPhaseAngle:
+        type: float
+      ob_source:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      ob_time:
+        type: date
+      ob_type:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      ob_uct:
+        type: boolean
+      tle:
+        properties:
+          approx_obcount:
+            type: float
+          approx_rms:
+            type: float
+          as_id:
+            type: long
+          classification:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          createdAt:
+            type: date
+          dnd_name:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          epoch:
+            type: date
+          f_date:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          fake_satno:
+            type: long
+          idElset:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          last_seen:
+            type: date
+          line1:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          line2:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          satNo:
+            type: long
+          source:
+            fields:
+              keyword:
+                ignore_above: 256
+                type: keyword
+            type: text
+          vismag_mean:
+            type: float
+          vismag_std:
+            type: float
+          vismagunc_mean:
+            type: float
+          vismagunc_std:
+            type: float
+      tle_approx_rms:
+        type: float
+      tle_classificationMarking:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      tle_dnd_name:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      tle_idElset:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      tle_last_seen:
+        type: date
+      tle_line1:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      tle_line2:
+        fields:
+          keyword:
+            ignore_above: 256
+            type: keyword
+        type: text
+      tle_ob_count:
+        type: float
+      tle_vismag_mean:
+        type: float
+      tle_vismag_std:
+        type: float
+      xa_obsres_age:
+        type: float
+      xa_obsres_angmom:
+        type: float
+      xa_obsres_angsep:
+        type: float
+      xa_obsres_astat:
+        type: float
+      xa_obsres_az:
+        type: float
+      xa_obsres_beta:
+        type: float
+      xa_obsres_chi:
+        type: float
+      xa_obsres_dec:
+        type: float
+      xa_obsres_deltat:
+        type: float
+      xa_obsres_height:
+        type: float
+      xa_obsres_lon:
+        type: float
+      xa_obsres_obsaz:
+        type: float
+      xa_obsres_obsdec:
+        type: float
+      xa_obsres_obsra:
+        type: float
+      xa_obsres_obsrng:
+        type: float
+      xa_obsres_obstime:
+        type: float
+      xa_obsres_obstype:
+        type: float
+      xa_obsres_posu:
+        type: float
+      xa_obsres_posv:
+        type: float
+      xa_obsres_posw:
+        type: float
+      xa_obsres_posx:
+        type: float
+      xa_obsres_posy:
+        type: float
+      xa_obsres_posz:
+        type: float
+      xa_obsres_ra:
+        type: float
+      xa_obsres_range:
+        type: float
+      xa_obsres_revnum:
+        type: float
+      xa_obsres_rngrate:
+        type: float
+      xa_obsres_satanom:
+        type: float
+      xa_obsres_satcat:
+        type: float
+      xa_obsres_su:
+        type: float
+      xa_obsres_velang:
+        type: float
+      xa_obsres_velx:
+        type: float
+      xa_obsres_vely:
+        type: float
+      xa_obsres_velz:
+        type: float
+      xa_obsres_vmag:
+        type: float
+  settings:
+    index:
+      number_of_replicas: '2'
+      number_of_shards: '1'

@@ -1,0 +1,148 @@
+[project]
+name = "almagest"
+version = "2.0.14"
+description = "Module for interfacing with the SDA Tap Lab opensearch instance"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "ICR", email = "gstewart@icr-team.com" }]
+dependencies = [
+  "APScheduler>=3.10.3",
+  "nested_lookup>=0.2.25",
+  "numpy",
+  "opensearch-dsl",
+  "opensearch-py",
+  "opensearch-logger",
+  "pandas",
+  "python-json-logger==2.0.7",
+  "pyOpenSSL",
+  "PyYAML",
+]
+
+[project.optional-dependencies]
+dev = [
+  "commitizen==4.8.3",
+  "flake8-pytest-style==2.1.0",
+  "flake8==7.3.0",
+  "almagest[test]",
+  "pre-commit",
+  "ruff==0.12.3"
+]
+
+test = [
+  "mockito==1.5.4",
+  "pytest-cov==6.2.1",
+  "pytest==8.4.1"
+]
+
+build = [
+  "build==1.2.2.post1",
+  "wheel==0.45.1"
+]
+
+deploy = [
+  "twine==6.1.0"
+]
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version_files = [
+    "pyproject.toml:version"
+]
+tag_format = "$version"
+version_scheme = "pep440"
+version_provider = "pep621"
+update_changelog_on_bump = false
+annotated_tag = true
+bump_message = "release $current_version → $new_version"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "almagest/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "almagest/*",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["almagest"]
+
+[tool.pytest.ini_options]
+# Allows tests in unit and integration directories with the same name to be discovered.
+addopts = "--import-mode=importlib"
+
+[tool.coverage.paths]
+source = ["almagest", "*/site-packages"]
+
+[tool.ruff]
+# See https://docs.astral.sh/ruff/rules/
+exclude = ["^tests/", "__init__.py"]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "D",  # pydocstyle
+    "E",  # Error
+    "F",  # pyflakes
+    "I",  # isort
+    "N",  # pep8-naming
+    "PGH",  # pygrep-hooks
+    "PTH", # flake8-use-pathlib
+    "Q",  # flake8-quotes
+    "S",  # bandit
+    "SIM",  # flake8-simplify
+    "TRY",  # tryceratops
+    "UP",  # pyupgrade
+    "W",  # Warning
+    "YTT", # flake8-2020
+]
+ignore = [
+    "FIX001",   # line-contains-fixme
+    "FIX002",   # line-contains-todo
+    "G004",     # logging-f-string
+    "PLR0913",  # too-many-arguments
+    "PLR0914",  # too-many-locals
+    "PLR0917",  # too-many-positional-arguments
+    "B905",     # zip strict=True; remove once python <3.10 support is dropped.
+    "UP006",    # Keep using Optional/Union instead of | (for Python <3.10 compatibility)
+    "UP045",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "D200",
+    "D401",
+    "E402",
+    "E501",     # Line too long (often handled by formatter or legacy code)
+    "F401",     # Unused imports (sometimes needed for side effects or type checking)
+    "TRY003",
+    "S101",
+]
+# 3. Avoid trying to fix flake8-bugbear (`B`) violations.
+# unfixable = ["B"]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# 4. Ignore `E402` (import violations) in all `__init__.py` files, and in selected subdirectories.
+#[tool.ruff.lint.per-file-ignores]
+#"__init__.py" = ["E402"]
+#"**/{tests,docs,tools}/*" = ["E402"]
+
+[tool.ruff.lint.mccabe]
+# Flag errors (`C901`) whenever the complexity level exceeds 15.
+max-complexity = 15

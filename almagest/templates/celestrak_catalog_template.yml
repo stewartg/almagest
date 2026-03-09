@@ -1,0 +1,113 @@
+aliases:
+  celestrak_catalog: {}
+index_patterns:
+- celestrak_catalog*
+mappings:
+  properties:
+    apogee:
+      type: long
+    classification:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    dataProvider:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    dataProviderUrl:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    dataStatusCode:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    decayDate:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    inclination:
+      type: float
+    ingestTimestamp:
+      type: date
+    launchDate:
+      ignore_malformed: true
+      type: date
+    launchSite:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    noradCatId:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    objectId:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    objectName:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    objectType:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    opsStatusCode:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    orbitCenter:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    orbitType:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    owner:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+    perigee:
+      type: long
+    period:
+      type: float
+    rcs:
+      fields:
+        keyword:
+          ignore_above: 256
+          type: keyword
+      type: text
+settings:
+  number_of_replicas: '2'
+  number_of_shards: '1'
+template: celestrak_catalog
