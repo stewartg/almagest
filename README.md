@@ -341,4 +341,3 @@ final_body = dsl_client.to_dict()
 assert "aggs" in final_body
 assert final_body.get("size") == 0 # Size 0 is typical for pure aggregation queries
 
-# Test Release
