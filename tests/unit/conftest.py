@@ -1,8 +1,9 @@
 from pathlib import Path
+from typing import Any, Optional
 
 import opensearchpy
 import pytest
-from mockito import mock, when
+from mockito import ANY, mock, when
 from opensearch_dsl import A, Q, Search
 
 from almagest.client_helper import ClientHelper
@@ -10,6 +11,7 @@ from almagest.dsl_query.mixins.agg import AggMixin
 from almagest.dsl_query.mixins.date import DateMixin
 from almagest.dsl_query.mixins.match import MatchMixin
 from almagest.dsl_query.mixins.pager import PagerMixin
+from almagest.dsl_query.mixins.update import UpdateMixin
 
 
 def get_test_data_dir(test_dir_name: str) -> list:
@@ -44,27 +46,65 @@ def _unstub():
     unstub()
 
 
-class _Hit(dict):
-    """Mock OpenSearch hit object that supports the `to_dict` interface."""
+class _Meta:
+    """Mock metadata object for OpenSearch hits.
 
-    def __init__(self, source: dict, sort: list | None = None) -> None:
+    Provides the .id attribute expected by opensearch_dsl Hit objects.
+    """
+
+    def __init__(self, doc_id: str | None):
+        self.id = doc_id
+
+
+class _Hit(dict):
+    """Mock OpenSearch hit object that supports the `to_dict` interface and `meta.id`.
+
+    This class mimics the structure of a real OpenSearch search hit, including:
+    - Dictionary access to source fields.
+    - A 'sort' list for pagination cursors.
+    - A 'meta' object containing the document ID (.meta.id).
+
+    :param source: The document source dictionary.
+    :param sort: Optional list containing sort values (cursors).
+    :param doc_id: The document _id. Required for tests involving ID retrieval.
+    """
+
+    def __init__(self, source: dict, sort: list | None = None, doc_id: str | None = None) -> None:
         super().__init__(source)
         if sort is not None:
             self["sort"] = sort
 
+        # Always initialize meta; id will be None if not provided
+        self.meta = _Meta(doc_id)
+
     def to_dict(self) -> dict:
-        return {
+        result = {
             "_source": dict(self),
-            **({"sort": self["sort"]} if "sort" in self else {}),
+            "_id": self.meta.id,
         }
+        if "sort" in self:
+            result["sort"] = self["sort"]
+        return result
 
 
 class _Resp:
     """Mock OpenSearch response object containing a list of hits."""
 
     def __init__(self, hits: list[_Hit]) -> None:
-        # Creates a dynamic object: resp.hits.hits
-        self.hits = type("Hits", (), {"hits": hits})
+        # # Creates a dynamic object: resp.hits.hits
+        # self.hits = type("Hits", (), {"hits": hits})
+
+        # Create a list subclass that also exposes the 'hits' attribute
+        # to match opensearch_dsl's HitList behavior if needed.
+        class HitList(list):
+            @property
+            def hits(self):
+                """Supports both resp.hits and resp.hits.hits access patterns."""
+                return self
+
+        # Assign the list of _Hit objects directly to self.hits.
+        # This enables: response.hits[0], len(response.hits), if response.hits:
+        self.hits = HitList(hits)
 
 
 class _StubSearch:
@@ -105,6 +145,52 @@ class _StubSearch:
         if not self._exec:
             raise RuntimeError("execute() not configured. Use _queue_responses or set _exec.")
         return self._exec()
+
+    def __getitem__(self, key: slice | int) -> "_StubSearch":
+        """Support slicing like search[:10] or search[0]."""
+        if isinstance(key, slice):
+            if key.stop is not None:
+                self._size = key.stop
+        elif isinstance(key, int):
+            self._size = 1
+        return self
+
+    def to_dict(self) -> dict:
+        """Reconstructs a dictionary representation of the search state.
+
+        This is used to mimic opensearch_dsl.Search.to_dict().
+        """
+        result = {}
+
+        # Add params (like size)
+        if self._params:
+            result.update(self._params)
+
+        # Add extra args (like pit, search_after)
+        if self._extra_args:
+            result.update(self._extra_args)
+
+        # Add sort
+        if self._sort_args:
+            # Real DSL converts args to list of dicts.
+            # Our stub stores raw args. We assume tests pass list of dicts directly.
+            result["sort"] = list(self._sort_args)
+
+        # Add query if present
+        if self._query_args:
+            args, kwargs = self._query_args
+            if args:
+                # If positional args were used (e.g., query("term", ...))
+                # We can't perfectly reconstruct the DSL dict without more logic,
+                # but for these specific tests, we mostly care about sort.
+                # However, to prevent errors, we can return a placeholder or try to build it.
+                # For the specific failing test, only 'sort' matters.
+                pass
+            if kwargs:
+                # Handle keyword style if needed
+                pass
+
+        return result
 
 
 def _queue_responses(stub: _StubSearch, *pages: _Resp) -> None:
@@ -150,7 +236,7 @@ class DummyMatchMixin(MatchMixin):
     without performing actual network operations.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, mock_search: _StubSearch, **kwargs) -> None:
         """Initialize the DummyMatchMixin with mock state.
 
         Sets up empty lists for must, must_not, and filter clauses, initializes
@@ -164,7 +250,7 @@ class DummyMatchMixin(MatchMixin):
         self.sort = []  # will be filled by descending/ascending
         self.pit_id = None
         self.index = "dummy-index"
-        self._search = Search(index=self.index)
+        self._search = mock_search
 
     def _apply_clauses(self):
         pass  # No-op for unit tests
@@ -181,7 +267,7 @@ class DummyAggMixin(AggMixin):
     state changes and query structure generation in isolation.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, mock_search: _StubSearch, **kwargs) -> None:
         """Initialize the DummyAggMixin with mock state and recorded calls.
 
         Sets up empty lists for query clauses, initializes aggregation-specific
@@ -201,7 +287,7 @@ class DummyAggMixin(AggMixin):
         # necessary AggMixin attributes
         self._unique_field = None  # set by latest()/earliest()
         self._keyword_suffix = ""  # set together with _unique_field
-        self._search = Search(index=self.index)
+        self._search = mock_search
 
         def _stub_to_dict() -> dict:
             return {"stub": "search"}
@@ -310,7 +396,7 @@ class DummyAggMixin(AggMixin):
 class DummyPagerMixin(PagerMixin):
     """Concrete PagerMixin for testing with injectable mock client AND mock search."""
 
-    def __init__(self, mock_search, mock_client):
+    def __init__(self, mock_search: _StubSearch, mock_client: Any, **kwargs) -> None:
         self._logger = mock()
         self._client = mock_client
         # setup state necessary for testing
@@ -330,22 +416,87 @@ class DummyPagerMixin(PagerMixin):
         pass
 
 
-class TestDslClient(DummyDateMixin, DummyMatchMixin, DummyAggMixin, DummyPagerMixin):
-    """A concrete test client combining all Dummy mixins.
+class DummyUpdateMixin(UpdateMixin):
+    """Concrete UpdateMixin for testing with injectable mock client.
 
-    This mimics the real DslClient MRO but uses test-safe implementations.
+    This class bypasses the real BaseMixin initialization to allow direct
+    injection of the mock client and search objects, ensuring no network
+    calls are made during unit tests of update/upsert logic.
     """
 
-    def __init__(self, mock_search, mock_client):
-        # Initialize state once to avoid conflicts between mixins
-        DummyDateMixin.__init__(self)
-        DummyMatchMixin.__init__(self)
-        DummyAggMixin.__init__(self)
-        DummyPagerMixin.__init__(self, mock_search, mock_client)
+    def __init__(self, mock_client: Any, mock_search: _StubSearch, **kwargs) -> None:
+        """Initialize the DummyUpdateMixin.
 
-        # Ensure index is set (PagerMixin sets it, but let's be explicit)
-        if not hasattr(self, "index"):
-            self.index = "dummy-index"
+        :param mock_client: The mocked OpenSearch client.
+        """
+        self._logger = mock()
+        self._client = mock_client
+        self.index = kwargs.get("index")
+        # Ensure other expected attributes exist if accessed by parent logic
+        self._must = []
+        self._must_not = []
+        self._filter = []
+        self.sort = [{"_doc": "asc"}]
+        self.pit_id = None
+        # Placeholder, usually not used by UpdateMixin methods directly
+        self._search = mock_search
+
+    # def get_id_by_field(self, field: str, value: Any) -> Optional[str]:
+    #     """
+    #     Override to use self._search (the stub) instead of creating a new Search().
+    #     """
+    #     try:
+    #         # Use the shared stubbed search object directly
+    #         srch = self._search
+
+    #         # Reset any previous query state if necessary (optional depending on test isolation)
+    #         # For this simple stub, we just chain onto it.
+    #         srch.query("term", **{field: value})
+    #         srch = srch[:1]
+
+    #         # This MUST call _StubSearch.execute(), NOT opensearch_dsl.Search.execute()
+    #         response = srch.execute()
+
+    #         if response.hits:
+    #             return response.hits[0].meta.id
+    #         return None
+    #     except Exception as e:
+    #         self._logger.exception(f"Error finding ID for {field}={value}: {e}")
+    #         raise
+
+
+class TestDslClient(DummyDateMixin, DummyMatchMixin, DummyAggMixin, DummyPagerMixin, DummyUpdateMixin):
+    """A concrete test client combining all Dummy mixins.
+
+    This mimics the real FluentDslClient MRO and signature:
+    __init__(self, index: str, **kwargs)
+
+    It expects 'mock_search' and 'mock_client' to be passed via kwargs.
+    """
+
+    def __init__(self, index: str, **kwargs) -> None:
+        """Initialize the TestDslClient.
+
+        :param index: The index name (passed to mixins).
+        :param kwargs: Must include 'mock_search' and 'mock_client'.
+        """
+        mock_search = kwargs.pop("mock_search", None)
+        mock_client = kwargs.pop("mock_client", None)
+
+        if not mock_search or not mock_client:
+            raise ValueError("TestDslClient requires 'mock_search' and 'mock_client' in kwargs.")
+
+        # Initialize each mixin explicitly to control state injection
+        # Note: Order matters if mixins depend on attributes set by others,
+        # but here we mostly set independent state.
+        DummyDateMixin.__init__(self)
+        DummyMatchMixin.__init__(self, mock_search, index=index)
+        DummyAggMixin.__init__(self, mock_search, index=index)
+        DummyPagerMixin.__init__(self, mock_search, mock_client, index=index)
+        DummyUpdateMixin.__init__(self, mock_client, mock_search, index=index)
+
+        # Ensure index is consistently set across all mixins
+        self.index = index
 
 
 @pytest.fixture
@@ -371,14 +522,15 @@ def mock_search() -> _StubSearch:
 @pytest.fixture
 def dsl_client(mock_search, mock_os_client):
     """Provides a fresh TestDslClient instance with the ClientHelper already mocked."""
-    # We pass the mock explicitly to ensure the Dummy classes use it,
-    # even though ClientHelper is also patched.
-    return TestDslClient(mock_search, mock_os_client)
+    # We pass the mock explicitly via kwargs to ensure the Dummy classes use them.
+    # The signature now matches FluentDslClient: (index, **kwargs)
+    return TestDslClient(index="dummy-index", mock_search=mock_search, mock_client=mock_os_client)
 
 
 @pytest.fixture
-def agg_mixin():
-    return DummyAggMixin()
+def agg_mixin(mock_search: _StubSearch) -> DummyAggMixin:
+    """Provides a standalone DummyAggMixin with a stubbed search."""
+    return DummyAggMixin(mock_search=mock_search, index="dummy-index")
 
 
 @pytest.fixture
@@ -387,11 +539,12 @@ def date_mixin():
 
 
 @pytest.fixture
-def match_mixin():
-    return DummyMatchMixin()
+def match_mixin(mock_search: _StubSearch) -> DummyMatchMixin:
+    """Provides a standalone DummyMatchMixin with a stubbed search."""
+    return DummyMatchMixin(mock_search=mock_search, index="dummy-index")
 
 
 @pytest.fixture
 def pager_mixin(mock_search, mock_os_client):
     """Provides a DummyPagerMixin with injected mock search and client."""
-    return DummyPagerMixin(mock_search, mock_os_client)
+    return DummyPagerMixin(mock_search, mock_os_client, index="dummy-index")
