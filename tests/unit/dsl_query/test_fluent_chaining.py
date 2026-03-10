@@ -1,6 +1,6 @@
 import datetime as dt
 
-from mockito import ANY, verify, when
+from mockito import ANY, when
 
 from tests.unit.conftest import _Hit, _queue_responses, _Resp
 

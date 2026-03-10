@@ -3,9 +3,10 @@ from .mixins.base_mixin import BaseMixin
 from .mixins.date import DateMixin
 from .mixins.match import MatchMixin
 from .mixins.pager import PagerMixin
+from .mixins.update import UpdateMixin
 
 
-class FluentDslClient(MatchMixin, AggMixin, DateMixin, PagerMixin, BaseMixin):
+class FluentDslClient(MatchMixin, AggMixin, DateMixin, PagerMixin, UpdateMixin, BaseMixin):
     """Initialize the DslClient.
 
     Composes multiple functional mixins (Matching, Aggregation, Date Filtering,

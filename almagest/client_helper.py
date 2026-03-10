@@ -16,11 +16,7 @@ class Singleton(type):
 
 class ClientHelper(metaclass=Singleton):
     def __init__(self):
-        """Sets up the singleton opensearch client.
-
-        The cert uses os.getenv which in effect makes using them optional
-        since os.getenv inserts empty string if not found.
-        """
+        """Sets up the singleton opensearch client."""
         self.client = None
         self.user = ""
         self.pw = ""
@@ -57,6 +53,7 @@ class ClientHelper(metaclass=Singleton):
         )
         if not client.ping():
             raise ValueError("Could not connect to opensearch at %s", obj.host)
+        client.update()
         return client
 
     @property
