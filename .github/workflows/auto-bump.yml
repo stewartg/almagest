@@ -11,6 +11,14 @@ jobs:
     permissions:
       contents: write 
     steps:
+      # prevent auto bump happening on git bot action
+      - name: Check if commit is from Auto-Bump
+        run: |
+          if [[ "${{ github.event.head_commit.author.name }}" == "github-actions[bot]" ]]; then
+            echo "Commit made by github-actions[bot]. Skipping auto-bump to prevent loop."
+            exit 0 # Exits successfully, stopping the job here
+          fi
+          echo "Commit made by human. Proceeding with bump."
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
