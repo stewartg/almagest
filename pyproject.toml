@@ -5,7 +5,7 @@ description = "Module for interfacing with the SDA Tap Lab opensearch instance"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name = "ICR", email = "gstewart@icr-team.com" }]
+authors = [{ name = "Greg Stewart", email = "gstew77@gmail.com" }]
 dependencies = [
   "APScheduler>=3.10.3",
   "PyYAML==6.0.3",
