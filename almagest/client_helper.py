@@ -53,7 +53,6 @@ class ClientHelper(metaclass=Singleton):
         )
         if not client.ping():
             raise ValueError("Could not connect to opensearch at %s", obj.host)
-        client.update()
         return client
 
     @property
