@@ -192,6 +192,19 @@ class _StubSearch:
 
         return result
 
+    @property
+    def _sort(self):
+        """Mimics the `opensearch_dsl.Search._sort` attribute required by production logic.
+
+        This property is necessary because `PagerMixin.search_after` explicitly checks
+        `if not self._search._sort:` to ensure a sort order exists before executing
+        pagination. Without this property, the stub would raise an `AttributeError`
+        when accessed by that method.
+
+        :return: The stored sort arguments if defined, otherwise an empty list.
+        """
+        return self._sort_args if self._sort_args is not None else []
+
 
 def _queue_responses(stub: _StubSearch, *pages: _Resp) -> None:
     """Attach a FIFO queue of mock responses to the stub's execute method."""
@@ -209,14 +222,37 @@ def _queue_responses(stub: _StubSearch, *pages: _Resp) -> None:
 class DummyDateMixin(DateMixin):
     """Concrete DateMixin for testing that records _add_range calls."""
 
-    def __init__(self):
-        self._range_calls = []
-        self._logger = mock()
+    def __init__(self, mock_search: _StubSearch = None, **kwargs) -> None:
+        """Initialize DummyDateMixin with required BaseMixin state.
 
-    # The real BaseMixin implementation is not needed for these unit tests.
+        :param mock_search: Optional stub search object. If not provided, creates a dummy one.
+        """
+        # Initialize BaseMixin state attributes required by @auto_sync
+        self._logger = mock()
+        self._must = []
+        self._must_not = []
+        self._filter = []
+        self.sort = [{"_doc": "asc"}]
+        self.pit_id = None
+        self.index = kwargs.get("index", "dummy-index")
+        self.size = 10000
+        self.after_key = None
+
+        # Provide a stub search if not injected (to support existing tests that don't pass it)
+        if mock_search is None:
+            self._search = _StubSearch()
+        else:
+            self._search = mock_search
+
+        # DateMixin specific state
+        self._range_calls = []
+
     def _add_range(self, field, **kwargs):
         """Record the call for later inspection."""
         self._range_calls.append((field, kwargs))
+        # Note: We do NOT append to self._filter here because this dummy
+        # is designed to test the argument passing, not the final DSL structure.
+        # However, the lists _must/_filter exist so @auto_sync doesn't crash.
 
     def _to_iso(self, value):
         # Simple stub for testing; real logic is in BaseMixin

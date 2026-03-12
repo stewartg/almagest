@@ -2,6 +2,7 @@ from typing import Any, Optional, Union
 
 from opensearch_dsl import A, Q, Search
 
+from almagest.dsl_query.dsl_sync_helper import auto_sync
 from almagest.util.logging.simple_logger import SimpleLogger
 
 from .base_mixin import BaseMixin
@@ -28,9 +29,6 @@ class AggMixin(BaseMixin):
 
         :param *args: Positional arguments passed to BaseMixin.
         :param **kwargs: Keyword arguments passed to BaseMixin.
-        :param *: Ensures all arguments after 'self' in potential overrides are
-                 keyword-only, though here we primarily forward *args/**kwargs
-                 to maintain compatibility with BaseMixin's signature.
         """
         super().__init__(*args, **kwargs)
         self._logger = SimpleLogger(self)
@@ -40,6 +38,7 @@ class AggMixin(BaseMixin):
         self._unique_field: str | None = None
         self._keyword_suffix: str = ""
 
+    @auto_sync
     def latest(
         self,
         unique_field: str,
@@ -63,6 +62,7 @@ class AggMixin(BaseMixin):
         self.descending(time_field)
         return self
 
+    @auto_sync
     def earliest(
         self,
         unique_field: str,
@@ -102,7 +102,6 @@ class AggMixin(BaseMixin):
 
         :return: Dictionary representing the standard OpenSearch query.
         """
-        self._apply_clauses()
         return self._search.to_dict()
 
     def _build_aggregate_query(self) -> dict:

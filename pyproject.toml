@@ -1,30 +1,30 @@
 [project]
 name = "almagest"
-version = "2.3.2"
+version = "3.0.0"
 description = "Module for interfacing with the SDA Tap Lab opensearch instance"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name = "Greg Stewart", email = "gstew77@gmail.com" }]
+authors = [{ name = "ICR", email = "gstewart@icr-team.com" }]
 dependencies = [
   "APScheduler>=3.10.3",
-  "PyYAML==6.0.3",
   "nested_lookup>=0.2.25",
-  "numpy==2.4.3",
-  "opensearch-dsl==2.1.0",
-  "opensearch-logger==1.3.1",
-  "opensearch-py==3.1.0",
-  "pandas==3.0.1",
-  "pyOpenSSL==25.3.0",
+  "numpy",
+  "opensearch-dsl",
+  "opensearch-py",
+  "opensearch-logger",
+  "pandas",
   "python-json-logger==2.0.7",
+  "pyOpenSSL",
+  "PyYAML",
 ]
   
 [project.optional-dependencies]
 dev = [
-  "almagest[test]",
   "commitizen==4.8.3",
   "flake8-pytest-style==2.1.0",
   "flake8==7.3.0",
+  "almagest[test]",
   "pre-commit",
   "ruff==0.12.3"
 ]

@@ -8,6 +8,7 @@ from opensearch_dsl import Q, Search
 from opensearch_dsl.query import Query
 
 from almagest.client_helper import ClientHelper
+from almagest.dsl_query.dsl_sync_helper import DslSyncHelper
 
 
 class BaseMixin:
@@ -103,29 +104,6 @@ class BaseMixin:
                         (e.g. gte=..., lt=...).
         """
         self._filter.append(Q("range", **{field: bounds}))
-
-    def _apply_clauses(self) -> None:
-        """Applies accumulated query clauses and pagination settings to the search object.
-
-        This method iterates through the internal `must`, `must_not`, and `filter` lists,
-        constructing the appropriate boolean queries and attaching them to the underlying
-        `self._search` instance. It also configures Point-in-Time (PIT) parameters if
-        available and enforces the specified `size` limit. Note that this method mutates
-        `self._search` in-place by reassigning it to the result of each chaining operation.
-        """
-        if self._must:
-            self._search = self._search.query(Q("bool", must=self._must))
-        if self._must_not:
-            self._search = self._search.query(Q("bool", must_not=self._must_not))
-        if self._filter:
-            self._search = self._search.filter(*self._filter)
-
-        # if self.search_after:
-        #     self._search = self._search.extra(search_after=self.search_after)
-        if self.pit_id:
-            self._search = self._search.extra(pit={"id": self.pit_id, "keep_alive": "5m"})
-
-        self._search = self._search.params(size=self.size)
 
     def __getattr__(self, name: str) -> Any:
         """Resolve missing attributes by delegating to mixin classes.

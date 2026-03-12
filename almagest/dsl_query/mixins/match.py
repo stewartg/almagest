@@ -1,5 +1,6 @@
 from opensearch_dsl import Q
 
+from almagest.dsl_query.dsl_sync_helper import auto_sync
 from almagest.util.logging.simple_logger import SimpleLogger
 
 from .base_mixin import BaseMixin
@@ -19,6 +20,7 @@ class MatchMixin(BaseMixin):
     # ------------------------------------------------------------------ #
     # Sorting
     # ------------------------------------------------------------------ #
+    @auto_sync
     def descending(self, field: str) -> "MatchMixin":
         """Sort results by field in descending order.
 
@@ -29,6 +31,7 @@ class MatchMixin(BaseMixin):
         self._search = self._search.sort(*self.sort)
         return self
 
+    @auto_sync
     def ascending(self, field: str) -> "MatchMixin":
         """Sort results by field in ascending order.
 
@@ -42,6 +45,7 @@ class MatchMixin(BaseMixin):
     # ------------------------------------------------------------------ #
     # Existence
     # ------------------------------------------------------------------ #
+    @auto_sync
     def exists(self, field: str) -> "MatchMixin":
         """Require that field exists in the document.
 
@@ -51,6 +55,7 @@ class MatchMixin(BaseMixin):
         self._filter.append(Q("exists", field=field))
         return self
 
+    @auto_sync
     def does_not_exist(self, field: str) -> "MatchMixin":
         """Require that field does not exist in the document.
 
@@ -63,6 +68,7 @@ class MatchMixin(BaseMixin):
     # ------------------------------------------------------------------ #
     # Exact/text match
     # ------------------------------------------------------------------ #
+    @auto_sync
     def exactly(self, field: str, value: int | str | bool) -> "MatchMixin":
         """Match field exactly to value using a 'term' query.
 
@@ -76,6 +82,7 @@ class MatchMixin(BaseMixin):
         self._must.append(Q("term", **{field: value}))
         return self
 
+    @auto_sync
     def match_text(self, field: str, value: str) -> "MatchMixin":
         """Match field using 'match_phrase' for full-text search.
 
@@ -92,6 +99,7 @@ class MatchMixin(BaseMixin):
     # ------------------------------------------------------------------ #
     # Multi-value
     # ------------------------------------------------------------------ #
+    @auto_sync
     def one_of(self, field: str, values: list[int | str]) -> "MatchMixin":
         """Match field to any value in the provided list.
 
@@ -126,6 +134,7 @@ class MatchMixin(BaseMixin):
 
         return self
 
+    @auto_sync
     def one_of_list(self, field: str, values: list[int | str]) -> "MatchMixin":
         """Force a 'terms' filter while keeping the default '_doc' sort.
 
@@ -139,6 +148,7 @@ class MatchMixin(BaseMixin):
         self._filter.append(Q("terms", **{field: values}))
         return self
 
+    @auto_sync
     def one_exists(self, fields: list[str]) -> "MatchMixin":
         """Require that any of the supplied fields exist.
 
