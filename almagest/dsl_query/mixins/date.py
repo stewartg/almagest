@@ -1,5 +1,6 @@
 import datetime as _dt
 
+from almagest.dsl_query.dsl_sync_helper import auto_sync
 from almagest.util.logging.simple_logger import SimpleLogger
 
 from .base_mixin import BaseMixin
@@ -15,6 +16,7 @@ class DateMixin(BaseMixin):
         super().__init__(*args, **kwargs)
         self._logger = SimpleLogger(self)
 
+    @auto_sync
     def on_or_after(
         self,
         field: str,
@@ -30,6 +32,7 @@ class DateMixin(BaseMixin):
         self._add_range(field, gte=self._to_iso(value))
         return self
 
+    @auto_sync
     def on_or_before(
         self,
         field: str,
@@ -45,6 +48,7 @@ class DateMixin(BaseMixin):
         self._add_range(field, lte=self._to_iso(value))
         return self
 
+    @auto_sync
     def after(
         self,
         field: str,
@@ -60,6 +64,7 @@ class DateMixin(BaseMixin):
         self._add_range(field, gt=self._to_iso(value))
         return self
 
+    @auto_sync
     def before(
         self,
         field: str,
@@ -75,6 +80,7 @@ class DateMixin(BaseMixin):
         self._add_range(field, lt=self._to_iso(value))
         return self
 
+    @auto_sync
     def greater_than(
         self,
         field: str,
@@ -89,6 +95,7 @@ class DateMixin(BaseMixin):
         self._add_range(field, gt=value)
         return self
 
+    @auto_sync
     def less_than(
         self,
         field: str,
@@ -103,6 +110,7 @@ class DateMixin(BaseMixin):
         self._add_range(field, lt=value)
         return self
 
+    @auto_sync
     def greater_than_or_equal(
         self,
         field: str,
@@ -117,6 +125,7 @@ class DateMixin(BaseMixin):
         self._add_range(field, gte=value)
         return self
 
+    @auto_sync
     def less_than_or_equal(
         self,
         field: str,
@@ -131,6 +140,7 @@ class DateMixin(BaseMixin):
         self._add_range(field, lte=value)
         return self
 
+    @auto_sync
     def between(
         self,
         field: str,

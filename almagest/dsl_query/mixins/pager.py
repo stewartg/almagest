@@ -17,25 +17,35 @@ class PagerMixin(BaseMixin):
         self._logger = SimpleLogger(self)
 
     def search_after(self, body: dict | None = None, timeout: int = 120) -> dict:
-        """Query OpenSearch data for the provided alias via search-after interface.
+        """Query OpenSearch data using search-after pagination.
 
-        :param alias: data alias to query.
-        :param body: query DSL
-        :param timeout: request timeout in seconds.
-        :return: list of dictionaries from all pages.
+        Fetches all pages of results recursively. If `body` is None, it executes
+        the query constructed via fluent chaining (e.g., exactly, after), relying
+        on automatic state synchronization. If `body` is provided, it overrides
+        all fluent filters and clears internal clause lists. Ensures a sort order
+        is present for valid pagination.
+
+        :param body: Optional raw DSL dictionary. If provided, overrides fluent filters.
+        :param timeout: Request timeout in seconds.
+        :return: List of source documents from all pages.
         """
         recs = []
+
         if body is None:
-            self._search.query("match_all")
+            if not self._search._sort:
+                self._search = self._search.sort({"_id": "asc"})
         else:
+            self._must.clear()
+            self._must_not.clear()
+            self._filter.clear()
+
             if not body.get("sort"):
                 body["sort"] = [{"_id": "asc"}]
-            self._search.update_from_dict(body)
 
-        # First page (no search_after yet)
+            self._search = self._search.update_from_dict(body)
+
         num_recs = self._page(recs, timeout, add_srch_after=False)
 
-        # Subsequent pages
         while num_recs > 0:
             num_recs = self._page(recs, timeout)
 
