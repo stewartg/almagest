@@ -172,3 +172,57 @@ def test_complex_chain_all_mixins(dsl_client, _unstub):
     top_hits = final_body["aggs"]["unique_ids"]["latest_doc"]["top_hits"]
     assert top_hits["sort"] == [{"timestamp": "desc"}]
     assert final_body.get("size") == 0
+
+
+def test_reset_clears_state_and_allows_reuse(dsl_client, mock_os_client, _unstub):
+    """Verifies that reset() clears all query state, allowing the client instance to be reused."""
+    # --- Phase 1: Initial Query Setup ---
+    start = dt.datetime(2026, 3, 1)
+    when(dsl_client)._to_iso(ANY).thenReturn("2026-03-01T00:00:00Z")
+
+    dsl_client.between("timestamp", start, dt.datetime(2026, 3, 2))
+    dsl_client.exactly("status", "error")
+    dsl_client.latest("user_id", str, "ts")
+
+    # Assert state is populated
+    assert len(dsl_client._range_calls) == 2
+    assert len(dsl_client._must) == 1
+    assert dsl_client._unique_field == "user_id"
+
+    # --- Phase 2: Reset ---
+    result = dsl_client.reset()
+    assert result is dsl_client
+
+    # Assert ALL state is cleared
+    assert len(dsl_client._range_calls) == 0
+    assert len(dsl_client._must) == 0
+    assert dsl_client._unique_field is None
+    assert dsl_client.sort == [{"_doc": "asc"}]
+
+    # --- Phase 3: Reuse with New Query ---
+
+    # STEP 1: Build the query (This reassigns self._search via @auto_sync)
+    dsl_client.exactly("level", "info")
+    dsl_client.greater_than("score", 50)
+
+    # STEP 2: Attach mock to the FINAL search object (after auto_sync reassignment)
+    mock_hit = _Hit({"id": 999, "msg": "success"}, [98765])
+    _queue_responses(dsl_client._search, _Resp([mock_hit]), _Resp([]))
+
+    # STEP 3: Execute
+    results = dsl_client.search_after()
+
+    # Assert results
+    assert len(results) == 1
+    assert results[0]["id"] == 999
+
+    # Assert state isolation
+    assert len(dsl_client._must) == 1
+    assert dsl_client._must[0].to_dict() == {"term": {"level": "info"}}
+
+    assert len(dsl_client._range_calls) == 1
+    assert dsl_client._range_calls[0][0] == "score"
+
+    # Ensure no leakage
+    fields_called = [call[0] for call in dsl_client._range_calls]
+    assert "timestamp" not in fields_called

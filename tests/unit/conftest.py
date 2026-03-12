@@ -260,6 +260,14 @@ class DummyDateMixin(DateMixin):
             return value.isoformat()
         return str(value)
 
+    def reset(self) -> "DummyDateMixin":
+        """Override reset to also clear test-specific history."""
+        # Call the parent reset to clear _must, _filter, _search, etc.
+        super().reset()
+        # Clear the test-specific log
+        self._range_calls = []
+        return self
+
 
 class DummyMatchMixin(MatchMixin):
     """Minimal concrete implementation of MatchMixin for unit testing.
@@ -477,29 +485,6 @@ class DummyUpdateMixin(UpdateMixin):
         # Placeholder, usually not used by UpdateMixin methods directly
         self._search = mock_search
 
-    # def get_id_by_field(self, field: str, value: Any) -> Optional[str]:
-    #     """
-    #     Override to use self._search (the stub) instead of creating a new Search().
-    #     """
-    #     try:
-    #         # Use the shared stubbed search object directly
-    #         srch = self._search
-
-    #         # Reset any previous query state if necessary (optional depending on test isolation)
-    #         # For this simple stub, we just chain onto it.
-    #         srch.query("term", **{field: value})
-    #         srch = srch[:1]
-
-    #         # This MUST call _StubSearch.execute(), NOT opensearch_dsl.Search.execute()
-    #         response = srch.execute()
-
-    #         if response.hits:
-    #             return response.hits[0].meta.id
-    #         return None
-    #     except Exception as e:
-    #         self._logger.exception(f"Error finding ID for {field}={value}: {e}")
-    #         raise
-
 
 class TestDslClient(DummyDateMixin, DummyMatchMixin, DummyAggMixin, DummyPagerMixin, DummyUpdateMixin):
     """A concrete test client combining all Dummy mixins.
@@ -533,6 +518,39 @@ class TestDslClient(DummyDateMixin, DummyMatchMixin, DummyAggMixin, DummyPagerMi
 
         # Ensure index is consistently set across all mixins
         self.index = index
+
+    def reset(self) -> "TestDslClient":
+        """Override reset to clear ALL state (including test-specific lists) and refresh the mock search."""
+        # 1. Clear BaseMixin state
+        self._must.clear()
+        self._must_not.clear()
+        self._filter.clear()
+
+        # 2. Clear AggMixin state
+        self._unique_field = None
+        self._keyword_suffix = ""
+        self.after_key = None
+
+        # 3. Clear DummyDateMixin test-specific state
+        if hasattr(self, "_range_calls"):
+            self._range_calls.clear()
+
+        # 4. Clear DummyAggMixin test-specific state (if any)
+        if hasattr(self, "_recorded_desc"):
+            self._recorded_desc.clear()
+        if hasattr(self, "_recorded_asc"):
+            self._recorded_asc.clear()
+
+        # 5. Create a new _StubSearch.
+        # BaseMixin.reset() would create a real Search object, which breaks tests.
+        # We must ensure the client remains mockable.
+        self._search = _StubSearch()
+
+        # 6. Restore default sort
+        self.sort = [{"_doc": "asc"}]
+        self._search.sort({"_doc": "asc"})
+
+        return self
 
 
 @pytest.fixture
