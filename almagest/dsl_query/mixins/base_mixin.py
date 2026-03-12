@@ -139,3 +139,34 @@ class BaseMixin:
                 return attr.__get__(self, self.__class__) if callable(attr) else attr
 
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+
+    def reset(self) -> "BaseMixin":
+        """Reset the query builder state to allow reuse of the client instance.
+
+        This method clears all accumulated query clauses (_must, _filter, _must_not),
+        resets aggregation state, and re-initializes the underlying _search object
+        with the original default sort and size parameters.
+
+        This allows the same FluentDslClient instance to be used for multiple
+        independent queries without re-instantiation.
+
+        :return: self (allows chaining immediately after reset).
+        """
+        # clear query clause lists
+        self._must.clear()
+        self._must_not.clear()
+        self._filter.clear()
+
+        # reset aggregation-specific state (from AggMixin)
+        self._unique_field = None
+        self._keyword_suffix = ""
+        self.after_key = None
+
+        self._search = Search(using=self._client, index=self.index).params(size=self.size)
+
+        # re-apply the default sort
+        default_sort = [{"_doc": "asc"}]
+        self.sort = default_sort
+        self._search = self._search.sort(*self.sort)
+
+        return self
